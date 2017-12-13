@@ -74,7 +74,7 @@ class Mention(db.Model):
 	__tablename__ = "mention"
 	id = db.Column(db.Integer, primary_key = True)
 	mentioned = db.Column(db.String)
-	user = db.relationship('User', backref = "Mention")
+	#user = db.relationship('User', backref = "Mention")
 
 class TweetForm(FlaskForm):
 	username = StringField("Enter your Twitter handle (example '@my_username'):", validators = [Required()])
@@ -128,14 +128,24 @@ def server_error(e):
 @app.route('/', methods = ['GET', 'POST'])
 def index():
 	tweeter = Tweet.query.all()
+	mentions = []
 	form = TweetForm()
 	if form.validate_on_submit():
-		if db.session.query(Tweet).filter_by(text = form.text.data).first():
+		if db.session.query(Tweet).filter_by(user_id = form.username.data).first():
 			flash("That user already has notifications set up...")
-		get_or_create_tweet(db.session, form.text.data, form.username.data, form.mention.data)
+		get_or_create_tweet(db.session, form.username.data, form.mention.data)
+		if app.config['ADMIN']:
+			send_email(form.email.data, 'New Mention', 'mail/new_mention', tweet = form.text.data)
 		return redirect(url_for('see_all_mentions'))
-	return render_template('index.html', form=form, mentions=mentions)
+	return render_template('index.html', form=form,mentions=mentions)
 
+@app.route('/all_mentions')
+def see_all_mentions():
+	all_mentions = []
+	mentions = Mention.query.all()
+	for m in mentions:
+		user = Mention.query.filter_by(mentioned = m.mentioned).first()
+		all_mentions.append('all_mentions.html', all_mentions = all_mentions)
 
 if __name__ == '__main__':
     db.create_all()
