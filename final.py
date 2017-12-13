@@ -60,14 +60,15 @@ class Tweet(db.Model):
 	__tablename__ = "tweet"
 	id = db.Column(db.Integer, primary_key=True)
 	text = db.Column(db.String(285))
-	user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+	username = db.Column(db.String, db.ForeignKey("username"))
 	mentions = db.relationship('Mention', secondary = Tweet_Mention, backref = db.backref('tweet', lazy = 'dynamic'), lazy = 'dynamic')
 
 class User(db.Model): 
 	__tablename__ = "user"
 	id = db.Column(db.Integer, primary_key = True)
 	twitter_username = db.Column(db.String(64), unique = True)
-	in_tweets = db.relationship('Tweet', backref = "User") #the tweets the user is mentioned in 
+	#in_tweets = db.relationship('Tweet', backref = "User") #the tweets the user is mentioned in 
+	in_tweets = db.Column(db.String(64)) 
 	email_address = db.Column(db.String(64), unique = True)
 
 class Mention(db.Model):
