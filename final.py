@@ -9,6 +9,11 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_mail import Mail, Message
 from threading import Thread
 from werkzeug import secure_filename
+import requests
+import json
+import re
+import tweepy
+import twitter_info
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -36,6 +41,17 @@ migrate = Migrate(app, db)
 manager.add_command('db', MigrateCommand)
 mail = Mail(app)
 
+
+#twitter authentication information 
+consumer_key = twitter_info.consumer_key
+consumer_secret = twitter_info.consumer_secret
+access_token = twitter_info.access_token
+access_token_secret = twitter_info.access_token_secret
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
+
+api = tweepy.API(auth, parser = tweepy.parsers.JSONParser())
+
 def make_shell_context():
     return dict(app=app, db=db, Tweet=Tweet, User=User, Mention=Mention) 
 
@@ -60,7 +76,8 @@ class Tweet(db.Model):
 	__tablename__ = "tweet"
 	id = db.Column(db.Integer, primary_key=True)
 	text = db.Column(db.String(285))
-	username = db.Column(db.String, db.ForeignKey("username"))
+	user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+	twitter_username = db.Column(db.String(64), unique = True)
 	mentions = db.relationship('Mention', secondary = Tweet_Mention, backref = db.backref('tweet', lazy = 'dynamic'), lazy = 'dynamic')
 
 class User(db.Model): 
@@ -132,7 +149,7 @@ def index():
 	mentions = []
 	form = TweetForm()
 	if form.validate_on_submit():
-		if db.session.query(Tweet).filter_by(user_id = form.username.data).first():
+		if db.session.query(Tweet).filter_by(username = form.username.data).first():
 			flash("That user already has notifications set up...")
 		get_or_create_tweet(db.session, form.username.data, form.mention.data)
 		if app.config['ADMIN']:
