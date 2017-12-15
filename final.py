@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, session, redirect, url_for, flash
+from flask import Flask, render_template, session, redirect, url_for, flash, request
 from flask_script import Manager, Shell
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, RadioField, IntegerField
@@ -10,6 +10,7 @@ from flask_mail import Mail, Message
 from threading import Thread
 from werkzeug import secure_filename
 import requests
+import json
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,12 +23,12 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
-app.config['MAIL_PORT'] = 587 #default
+app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME') # TODO export to your environs -- may want a new account just for this. It's expecting gmail, not umich
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME') 
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_SUBJECT_PREFIX'] = '[A Dog-a-Day App]'
-app.config['MAIL_SENDER'] = 'demgijs364@gmail.com' # TODO fill in email
+app.config['MAIL_SENDER'] = 'demgijs364@gmail.com'
 app.config['ADMIN'] = os.environ.get('ADMIN')
 
 manager = Manager(app)
@@ -37,7 +38,7 @@ manager.add_command('db', MigrateCommand)
 mail = Mail(app)
 
 def make_shell_context():
-    return dict(app=app, db=db, Tweet=Tweet, User=User, Mention=Mention) 
+    return dict(app=app, db=db, User=User, Dogs=Dogs, Breed=Breed) 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 
@@ -54,7 +55,7 @@ def send_email(to, subject, template, **kwargs):
     thr.start()
     return thr
 
-Tweet_Mention = db.Table('Tweet_Mention', db.Column('tweet_id', db.Integer, db.ForeignKey('tweet.id')), db.Column('mention_id', db.Integer, db.ForeignKey('mention.id')))
+#Tweet_Mention = db.Table('Tweet_Mention', db.Column('tweet_id', db.Integer, db.ForeignKey('tweet.id')), db.Column('mention_id', db.Integer, db.ForeignKey('mention.id')))
 
 
 class User(db.Model): 
@@ -76,8 +77,8 @@ class Breed(db.Model):
 	#user = db.relationship('User', backref = "Mention")
 
 class ProfileForm(FlaskForm):
-	username = StringField("Enter your Dog of the Day username (example 'iheartdogs33'):", validators = [Required()])
-	choice = RadioField('Are you looking for pictures of all dogs or a certain breed?', choices=[('All Dogs!','All Dogs!'), ('A breed!', 'A breed!')])
+	username = StringField("Enter your Dog-A-Day username (example 'iheartdogs33'):", validators = [Required()])
+	choice = RadioField('Are you looking for pictures of all dogs or a certain breed?', choices=[('All Dogs!','All Dogs!'), ('A Breed!', 'A Breed!')])
 	email = StringField("Enter the email address to which you would like your mention updates to be sent:", validators = [Required()])
 	submit = SubmitField('Sign me up!')
 
@@ -113,7 +114,54 @@ def get_or_create_breed(db_session, choose_breed, picture_num):
 		db_session.commit()
 		return breed
 
-#Error routes
+
+@app.route('/', methods = ['GET', 'POST'])
+def profile_form():
+	simpleForm = ProfileForm()
+	return render_template('profile-form.html', form=simpleForm)
+
+
+@app.route('/result/alldogs', methods = ['GET', 'POST'])
+def index():
+	#generate = Dogs.query.all()
+	#dogs = []
+	form = ProfileForm(request.form)
+	if request.method == "POST" and form.validate_on_submit():
+		#username = form.username.data
+		#choice = form.choice.data
+		#email = form.email.data
+		result = request.args
+		#base_url = "https://dog.ceo/api/breeds/image/random"
+		base_url = "https://dog.ceo/dog-api/"
+		params = {}
+		params['message'] = result.get(str)
+		response = requests.get(base_url, params)
+		data = json.loads(response.text)
+		if choice == "All Dogs!":
+			return render_template('all_dogs.html', result = data["result"], username = username)
+		flash('All fields are required!')
+		#base_url = 'https://dog.ceo/dog-api/breeds-image-random.php'
+		#if choice == "A Breed!":
+		#	return render_template('breeds.html', results = data["results"], username = username, dog_type = dog_type)
+	
+		#if db.session.query(User).filter_by(username = form.username.data).first():
+		#	flash("That user already has emails set up...")
+		#get_or_create_dogs(db.session, form.pic_id.data)
+		#if app.config['ADMIN']:
+	#		send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', dog = form.choice.data)
+	#	return redirect(url_for('see_my_dogs'))
+	#return render_template('index.html', form=form,dogs=dogs)
+	#flash('All fields are required!')
+
+@app.route('/my_dogs')
+def see_my_dogs():
+	my_dogs = []
+	dogs = Dogs.query.all()
+	for d in dogs:
+		user = Dogs.query.filter_by(picture_num = d.pic_id).first()
+		my_dogs.append('my_dogs.html', my_dogs = my_dogs)
+
+
 @app.errorhandler(404)
 def page_not_found(e):
 	return render_template('404.html'), 404
@@ -121,48 +169,6 @@ def page_not_found(e):
 @app.errorhandler(500)
 def server_error(e):
 	return render_template('500.htm'), 500
-
-@app.route('/', methods = ['GET', 'POST'])
-def index():
-	generate = Dogs.query.all()
-	dogs = []
-	form = DogForm(request.form)
-	if request.method == "POST" and form.validate_on_submit():
-		username = form.username.data
-		choice = form.choice.data
-		email = form.email.data
-		result = request.args
-		base_url = "https://dog.ceo/dog-api/"
-		params = {}
-		params['message'] = 'dog_info'
-		response = requests.get(base_url, params)
-		data = json.loads(response.text)
-		if choice == "All Dogs!":
-			return render_template('all_dogs.html', results = data["results"], username = username)
-		if choice == "A Breed!":
-			return render_template('breeds.html', results = data["results"], username = username)
-	flash('All fields are required!')
-
-
-
-
-
-
-		if db.session.query(Tweet).filter_by(username = form.username.data).all():
-			flash("That user already has notifications set up...")
-		get_or_create_tweet(db.session, form.username.data, form.email.data)
-		if app.config['ADMIN']:
-			send_email(form.email.data, 'New Mention', 'mail/new_mention', tweet = form.text.data)
-		return redirect(url_for('see_all_mentions'))
-	return render_template('index.html', form=form,mentions=mentions)
-
-@app.route('/all_mentions')
-def see_all_mentions():
-	all_mentions = []
-	mentions = Mention.query.all()
-	for m in mentions:
-		user = Mention.query.filter_by(mentioned = m.mentioned).first()
-		all_mentions.append('all_mentions.html', all_mentions = all_mentions)
 
 if __name__ == '__main__':
     db.create_all()

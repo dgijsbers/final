@@ -1,0 +1,17 @@
+<html>
+<head>
+	Welcome <b>{{ username }}</b>! We have set up emails for you to receive a random dog picture! 
+	
+</head>
+<body>
+	
+<ul>
+	{% for item in result %}
+		{% if message in item %}
+			{{ message[0] }}
+			{% endif %}
+		{% endif %}
+	{% endfor %}
+</ul>
+</body>
+</html>

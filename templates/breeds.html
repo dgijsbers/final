@@ -1,0 +1,17 @@
+<html>
+<head>
+	
+</head>
+<body>
+	Welcome <b>{{ username }}</b>! We have set up emails for you to receive a picture of a <b> {{ dog_type }} </b>!
+
+<ul>
+	{% for item in results %}
+		{% if message in item %}
+			{{ message }}
+			{% endif %}
+		{% endif %}
+	{% endfor %}
+</ul>
+</body>
+</html>
