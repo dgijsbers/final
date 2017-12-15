@@ -26,7 +26,7 @@ app.config['MAIL_PORT'] = 587 #default
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME') # TODO export to your environs -- may want a new account just for this. It's expecting gmail, not umich
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-app.config['MAIL_SUBJECT_PREFIX'] = '[Tweets App]'
+app.config['MAIL_SUBJECT_PREFIX'] = '[A Dog-a-Day App]'
 app.config['MAIL_SENDER'] = 'demgijs364@gmail.com' # TODO fill in email
 app.config['ADMIN'] = os.environ.get('ADMIN')
 
@@ -56,60 +56,62 @@ def send_email(to, subject, template, **kwargs):
 
 Tweet_Mention = db.Table('Tweet_Mention', db.Column('tweet_id', db.Integer, db.ForeignKey('tweet.id')), db.Column('mention_id', db.Integer, db.ForeignKey('mention.id')))
 
-class Recipe(db.Model):
-	__tablename__ = "recipe"
-	id = db.Column(db.Integer, primary_key=True)
-	text = db.Column(db.String(285))
-	
+
 class User(db.Model): 
 	__tablename__ = "user"
 	id = db.Column(db.Integer, primary_key = True)
-	rg_username = db.Column(db.String(64), unique = True) 
+	dod_username = db.Column(db.String(64), unique = True) 
 	email_address = db.Column(db.String(64), unique = True)
 
-class Video(db.Model):
-	__tablename__ = "mention"
+class Dogs(db.Model):
+	__tablename__ = "dogs"
+	id = db.Column(db.Integer, primary_key=True)
+	pic_id = db.Column(db.Integer)
+
+class Breed(db.Model):
+	__tablename__ = "breed"
 	id = db.Column(db.Integer, primary_key = True)
-	title = db.Column(db.String(64))
+	dog_type = db.Column(db.String(64))
+	pic_id = db.Column(db.Integer)
 	#user = db.relationship('User', backref = "Mention")
 
 class ProfileForm(FlaskForm):
-	username = StringField("Enter your Twitter handle (example '@my_username'):", validators = [Required()])
-	choice = RadioField('Are you looking for recipes or food videos?', choices=[('Recipes!','Recipes!'), ('Videos!', 'Videos!')])
+	username = StringField("Enter your Dog of the Day username (example 'iheartdogs33'):", validators = [Required()])
+	choice = RadioField('Are you looking for pictures of all dogs or a certain breed?', choices=[('All Dogs!','All Dogs!'), ('A breed!', 'A breed!')])
 	email = StringField("Enter the email address to which you would like your mention updates to be sent:", validators = [Required()])
 	submit = SubmitField('Sign me up!')
 
 
-##Put get_or_create functions here 
-def get_or_create_tweet(db_session, tweet_text, my_handle):
-	tweet = db.session.query(Tweet).filter_by(user_id = my_handle).first()
-	if tweet:
-		return tweet
-	else:
-		tweet = Tweet(tweet_text = text, my_handle = user_id)
-		db.session.add(tweet)
-		db.session.commit()
-		return tweet
-
-def get_or_create_user(db_session, username, tweets, email):
-	user = db.session.query(User).filter_by(twitter_username = username).first()
+##Put get_or_create functions here
+def get_or_create_user(db_session, username, email):
+	user = db.session.query(User).filter_by(dod_username = username).first()
 	if user:
 		return user
 	else:
-		user = User(twitter_username = username, tweets = in_tweets, email_address = email)
+		user = User(dod_username = username, email_address = email)
 		db_session.add(user)
 		db_session.commit()
 		return user
 
-def get_or_create_mention(db_session, my_handle, other_user):
-	mention = db.session.query(Mention).filter_by(other_user = user).first()
-	if mention:
-		return mention
+def get_or_create_dogs(db_session, picture_num):
+	dogs = db.session.query(Tweet).filter_by(pic_id = picture_num).first()
+	if dogs:
+		return dogs
 	else:
-		mention = Mention(my_handle = mentioned, other_user = user)
-		db_session.add(mention)
+		dogs = Dogs(pic_id = picture_num)
+		db.session.add(dogs)
+		db.session.commit()
+		return dogs
+
+def get_or_create_breed(db_session, choose_breed, picture_num):
+	breed = db.session.query(Breed).filter_by(choose_breed = dog_type).first()
+	if breed:
+		return breed
+	else:
+		breed = Breed(dog_type = choose_breed, pic_id = picture_num)
+		db_session.add(breed)
 		db_session.commit()
-		return mention
+		return breed
 
 #Error routes
 @app.errorhandler(404)
@@ -122,10 +124,30 @@ def server_error(e):
 
 @app.route('/', methods = ['GET', 'POST'])
 def index():
-	tweeter = Tweet.query.all()
-	mentions = []
-	form = TweetForm()
-	if form.validate_on_submit():
+	generate = Dogs.query.all()
+	dogs = []
+	form = DogForm(request.form)
+	if request.method == "POST" and form.validate_on_submit():
+		username = form.username.data
+		choice = form.choice.data
+		email = form.email.data
+		result = request.args
+		base_url = "https://dog.ceo/dog-api/"
+		params = {}
+		params['message'] = 'dog_info'
+		response = requests.get(base_url, params)
+		data = json.loads(response.text)
+		if choice == "All Dogs!":
+			return render_template('all_dogs.html', results = data["results"], username = username)
+		if choice == "A Breed!":
+			return render_template('breeds.html', results = data["results"], username = username)
+	flash('All fields are required!')
+
+
+
+
+
+
 		if db.session.query(Tweet).filter_by(username = form.username.data).all():
 			flash("That user already has notifications set up...")
 		get_or_create_tweet(db.session, form.username.data, form.email.data)
