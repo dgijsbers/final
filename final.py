@@ -72,7 +72,7 @@ class Dogs(db.Model):
 class Breed(db.Model):
 	__tablename__ = "breed"
 	id = db.Column(db.Integer, primary_key = True)
-	dog_type = db.Column(db.String(64))
+	dog_type = db.Column(db.String(64)) ##many to many - many breeds have many dogs
 	pic_id = db.Column(db.Integer)
 	#user = db.relationship('User', backref = "Mention")
 
@@ -127,14 +127,14 @@ def index():
 	#dogs = []
 	form = ProfileForm(request.form)
 	if request.method == "POST" and form.validate_on_submit():
-		#username = form.username.data
-		#choice = form.choice.data
-		#email = form.email.data
+		username = form.username.data
+		choice = form.choice.data
+		email = form.email.data
 		result = request.args
 		#base_url = "https://dog.ceo/api/breeds/image/random"
 		base_url = "https://dog.ceo/dog-api/"
 		params = {}
-		params['message'] = result.get(str)
+		params['message'] = result.get('message')
 		response = requests.get(base_url, params)
 		data = json.loads(response.text)
 		if choice == "All Dogs!":
