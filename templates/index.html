@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Looking for a picture of a dog every day?</title>
+		<title>Dog-A-Day</title>
 		<style>
 		body{color:purple;font-size:20px;font-family:sans-serif}
 		</style>
@@ -9,6 +9,7 @@
 
 {% block content %}
 	<h1>Welcome to Dog-A-Day! Let's set up your profile.</h1>
+	<p><a href="{{ url_for('see_my_dogs') }}">See dogs sent.</a></p>
 	<form method="POST" action="http://localhost:5000/result/alldogs">
 		
 		{{ form.hidden_tag() }}

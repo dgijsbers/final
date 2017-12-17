@@ -1,0 +1,18 @@
+<ul>
+{% for d in my_dogs %}
+<li>{{ d }}<br><i>posted by</i> <strong>@{{ dod_username }}</strong></li><br><br>
+{% endfor %}
+</ul>
+
+{% if not my_dogs %}
+There are no saved dogs to show.
+{% endif %}
+
+
+<div>
+{% for message in get_flashed_messages() %}
+<strong>*** {{ message }} ***</strong>
+{% endfor %}
+</div>
+
+<a href="{{ url_for('profile_form')}}">Return to form.</a>

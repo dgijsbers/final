@@ -143,24 +143,27 @@ def index():
 #			item.append(['message'][1])
 
 		send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', item = data['message'], username = username)
+		
 		return render_template('all_dogs.html', result = data["message"], username = username)
+		return redirect(url_for('see_my_dogs'))
+	#	return redirect(url_for(('index')))
 		flash('All fields are required!')
 		#base_url = 'https://dog.ceo/dog-api/breeds-image-random.php'
 #to, subject, template, **kwargs		
 
-@app.route('/email', methods = ['GET', 'POST'])
-def send_it():
-		dogs = Dogs.query.all()
-		form = ProfileForm
-		if form.validate_on_submit():
-			if db.session.query(User).filter_by(username = form.username.data).first():
-				flash("That user already has emails set up...")
-			else:
-				get_or_create_dogs(db.session, form.username.data, form.email.data)
-				if app.config['ADMIN']:
-					print("********")
-					send_email(form.email.data, 'New Dog Pic', 'mail/new_dog')
-			return redirect(url_for('see_my_dogs'))
+#@app.route('/email', methods = ['GET', 'POST'])
+#def send_it():
+#		dogs = Dogs.query.all()
+#		form = ProfileForm
+#		if form.validate_on_submit():
+#			if db.session.query(User).filter_by(username = form.username.data).first():
+#				flash("That user already has emails set up...")
+#			else:
+#				get_or_create_dogs(db.session, form.username.data, form.email.data)
+#				if app.config['ADMIN']:
+#					print("********")
+#					send_email(form.email.data, 'New Dog Pic', 'mail/new_dog')
+#			return redirect(url_for('see_my_dogs'))
 	
 
 @app.route('/my_dogs')
@@ -168,9 +171,9 @@ def see_my_dogs():
 	my_dogs = []
 	dogs = Dogs.query.all()
 	for d in dogs:
-		user = Dogs.query.filter_by(picture_num = d.pic_id).first()
-		my_dogs.append('my_dogs.html', my_dogs = my_dogs)
-
+		user = Dogs.query.filter_by(my_dogs = my_dogs).first()
+		my_dogs.append(d.my_dogs, userdod_username)
+	return render_template('my_dogs.html', my_dogs = my_dogs)
 
 @app.errorhandler(404)
 def page_not_found(e):
