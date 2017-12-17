@@ -1,11 +1,11 @@
 README - Documentation for Demery Gijsbers' Final Project -SI364
 
-This project takes JSON data from the Dog CEO API to send emails to a user with a picture of new dog every day. 
+This project takes JSON data from the Dog CEO API to send emails to a user with a link to a new picture of new dog.
 
-The database used that will need to be created is titled "demgijsfinal" and the title of the project is "final" so to run is: python final.py runserver 
+The database used that will need to be created is titled "demgijsfinalproject" and the title of the project is "final" so to run is: python final.py runserver 
 
-This will open a form on the localhost for a user to enter a username for "Dog-A-Day", the kind of dog they would like to see (either a random dog, or a dog of a certain breed) and their email address so that they are emailed the picture. 
+This will open a form on the localhost for a user to enter a username for "Dog-A-Day" and their email address so that they are emailed the picture. 
 
-One thing the API told me to install that I believe should be installed in order to run it correctly is "pip install php" for the pictures. 
+I installed "php" as instructed by the Dog API README, though I believe this would only be used if I were using the photos directly. 
 
 The emails are sent from my ADMIN account, and a user may only set up one account per email address. 
