@@ -135,10 +135,14 @@ def index():
 		result = request.args
 		base_url = "https://dog.ceo/api/breeds"
 		#response = requests.get(base_url + "/image/random")
-		response = requests.get(base_url + '/list')
+		response = requests.get(base_url + '/image/random')
 #		print(response.text)
 		data = json.loads(response.text)
-		send_email(form.email.data, 'New Dog Pic', 'mail/new_dog')
+#		item = []
+#		if 'message' not in item:
+#			item.append(['message'][1])
+
+		send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', item = data['message'], username = username)
 		return render_template('all_dogs.html', result = data["message"], username = username)
 		flash('All fields are required!')
 		#base_url = 'https://dog.ceo/dog-api/breeds-image-random.php'
@@ -155,7 +159,7 @@ def send_it():
 				get_or_create_dogs(db.session, form.username.data, form.email.data)
 				if app.config['ADMIN']:
 					print("********")
-					send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', message = response.text)
+					send_email(form.email.data, 'New Dog Pic', 'mail/new_dog')
 			return redirect(url_for('see_my_dogs'))
 	
 
