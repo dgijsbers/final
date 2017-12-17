@@ -19,7 +19,7 @@ app = Flask(__name__)
 app.debug = True
 app.config['SECRET_KEY'] = 'hardtoguessstringfromsi364thisisnotsupersecure'
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://localhost/demgijsfinal"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://localhost/demgijsfinalproject"
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -29,8 +29,8 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME') 
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_SUBJECT_PREFIX'] = '[A Dog-a-Day App]'
-app.config['MAIL_SENDER'] = 'demgijs364@gmail.com'
-app.config['ADMIN'] = os.environ.get('ADMIN')
+app.config['MAIL_SENDER'] = 'Admin demgijs364@gmail.com'
+app.config['ADMIN'] = os.environ.get('ADMIN') or 'demgijsi364@gmail.com'
 
 manager = Manager(app)
 db = SQLAlchemy(app)
@@ -54,6 +54,7 @@ def send_email(to, subject, template, **kwargs):
     msg.html = render_template(template + '.html', **kwargs)
     thr = Thread(target=send_async_email, args=[app, msg]) 
     thr.start()
+    print('email')
     return thr
 
 #Tweet_Mention = db.Table('Tweet_Mention', db.Column('tweet_id', db.Integer, db.ForeignKey('tweet.id')), db.Column('mention_id', db.Integer, db.ForeignKey('mention.id')))
@@ -99,7 +100,7 @@ def get_or_create_dogs(db_session, picture_num, breed):
 	if dogs:
 		return dogs
 	else:
-		dogs = Dogs(pic_id = picture_num, )
+		dogs = Dogs(pic_id = picture_num, breed = breed)
 		db.session.add(dogs)
 		db.session.commit()
 		return dogs
@@ -137,18 +138,25 @@ def index():
 		response = requests.get(base_url + '/list')
 #		print(response.text)
 		data = json.loads(response.text)
-#		for item in data:
- #       		print(item)
+		send_email(form.email.data, 'New Dog Pic', 'mail/new_dog')
 		return render_template('all_dogs.html', result = data["message"], username = username)
 		flash('All fields are required!')
 		#base_url = 'https://dog.ceo/dog-api/breeds-image-random.php'
-		
-		if db.session.query(User).filter_by(username = form.username.data).first():
-			flash("That user already has emails set up...")
-		get_or_create_dogs(db.session, form.pic_id.data, form.breeds.data)
-		if app.config['ADMIN']:
-			send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', dog = form.choice.data)
-		return redirect(url_for('see_my_dogs'))
+#to, subject, template, **kwargs		
+
+@app.route('/email', methods = ['GET', 'POST'])
+def send_it():
+		dogs = Dogs.query.all()
+		form = ProfileForm
+		if form.validate_on_submit():
+			if db.session.query(User).filter_by(username = form.username.data).first():
+				flash("That user already has emails set up...")
+			else:
+				get_or_create_dogs(db.session, form.username.data, form.email.data)
+				if app.config['ADMIN']:
+					print("********")
+					send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', message = response.text)
+			return redirect(url_for('see_my_dogs'))
 	
 
 @app.route('/my_dogs')
