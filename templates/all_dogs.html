@@ -6,11 +6,8 @@
 <body>
 	
 <ul>
-	{% for item in result %}
-		{% if message in item %}
-			{{ message[0] }}
-			{% endif %}
-		{% endif %}
+	{% for item in result %} 
+			{{ item }} </br>
 	{% endfor %}
 </ul>
 </body>

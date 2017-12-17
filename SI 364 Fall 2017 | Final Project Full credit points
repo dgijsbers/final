@@ -17,38 +17,28 @@ Requirements for the final project
 
 Total 2500 points:
 •Get some data from another source (an API, BeautifulSoup)
-•At least 4 view functions (not counting error handling)
-•At least 2 error handling view functions (404 and whatever other real error you want)
-•At least 3 models (database tables)
-•At least 1 one-to-many relationship
+•--At least 4 view functions (not counting error handling) 
+•--At least 2 error handling view functions (404 and whatever other real error you want)
+•--At least 3 models (database tables)
+•--At least 1 one-to-many relationship
 •At least 1 many-to-many relationship with association table
-•At least 2 get_or_create functions to deal with entering data into a database
-•At least 1 form using WTForms
+•--At least 2 get_or_create functions to deal with entering data into a database
+•--At least 1 form using WTForms
 •At least 2 dynamic links, which can be covered by
-	-a href tags that send data that is processed by the end URL
-	-using url_forousing redirect
+	-a href tags that send data that is processed by the end URL using url_for
+	-using redirect
 •(200 points of the 2500) Use at least one flask extension so that it works:
-	-Could be Flask email
-	-Or using template extensions with base templates, using template inheritance 
-	(http://flask.pocoo.org/docs/0.12/patterns/templateinheritance/)
-	-Or any other you find —in docs, online, etc (http://flask.pocoo.org/extensions/)
-	 —of equivalent complexity to email (e.g. writing only one line at the top of a
-	  Python file will not fulfill this requirement, but doing a little setup, like 
-	  setting up email. to make something happen will)
-		-The Bootstrapextension will notcount for this, however.
+	--Could be Flask email
+	  Python file will not fulfill this requirement, but doing a little setup, like setting up email. to make something happen will)
 
-	•IMPORTANT: Include a README.md file in the GitHub repository that explains what
-	 your application does and what is important to know about running it:oWhat name 
-	 database must be created
+
+	•IMPORTANT: Include a README.md file in the GitHub repository that explains what your application does and what is important to know about running it:
+	 	-What name database must be created
 		-Any special command that must be run and how specifically to run the program,
 		 e.g.tell us in the README what to run like:python filename.py runserver ...
-		-Any dependencies of the project that we have to pip install —make sure to
-		 specify ALL of them clearly (you can do this in a requirements.txt file!).
+		-Any dependencies of the project that we have to pip install —make sure to specify ALL of them clearly (you can do this in a requirements.txt file!).
 
-	•NOTE: Do not repeat code from lecture, section, or earlier assignments to fulfill 
-	requirements, though you may include it as an addition. If there is a specific 
-	reason you want to, you can explain it in your HW5 questions, and we will approve 
-	or not (if we do not, we’ll offer comments about what changes you could make)!
+	•NOTE: Do not repeat code from lecture, section, or earlier assignments to fulfill requirements, though you may include it as an addition. If there is a specific reason you want to, you can explain it in your HW5 questions, and we will approve or not (if we do not, we’ll offer comments about what changes you could make)!
 	Various amounts of points for:
 		•(200 points) User authenticationoThis has to make sense in the application 
 		—can’t just be showing a name, has to involve data you can see or use while 
@@ -58,17 +48,10 @@ Total 2500 points:
 		-Note that you’ll have to save the files to a database table to do this.
 
 		•(200 points total) Adding a (good) test suite —at least 8 good test methods 
-		(non-trivial tests), which can be run with a test command (there’s a chapter 
-		in the Grinberg book about testing in Flask, and you can also apply previous 
-		course knowledge, if you want to do this)
-		•(250 points) Adding in AJAX requests that work, or using a translation module 
-		to translate into other languages from English (this is quite challenging —we 
-		haven’t learned this in class! 
+		(non-trivial tests), which can be run with a test command (there’s a chapter in the Grinberg book about testing in Flask, and you can also apply previous course knowledge, if you want to do this)
+		•(250 points) Adding in AJAX requests that work, or using a translation module to translate into other languages from English (this is quite challenging —we haven’t learned this in class! 
 		https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xv-ajax)
-		NOTE:If you do all of those things correctly, you will get more than 3000 points! 
-		The maximum amount of points you can get for the final project to count toward your
-		 score is 3100. Up till that point, we will count points for everything that is correct
-		  and works per the specifications above.
+		NOTE:If you do all of those things correctly, you will get more than 3000 points! The maximum amount of points you can get for the final project to count toward your score is 3100. Up till that point, we will count points for everything that is correct and works per the specifications above.
 You are not being graded on anything involving design in this course. Though you may certainly
  use CSS or any styling you know if you plan to add this to your portfolio, it is neither expected 
  nor a bonus in this class! You can learn about design of the front end of the app in SI 339, and 

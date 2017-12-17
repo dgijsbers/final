@@ -2,19 +2,18 @@
 	<head>
 		<title>Looking for a picture of a dog every day?</title>
 		<style>
-		body{color:red;font-size:20px;font-family:sans-serif}
+		body{color:purple;font-size:20px;font-family:sans-serif}
 		</style>
 	</head>
 	<body>
 
 {% block content %}
 	<h1>Welcome to Dog-A-Day! Let's set up your profile.</h1>
-	<form method="POST" action="http://localhost:5000/result">
+	<form method="POST" action="http://localhost:5000/result/alldogs">
 		
 		{{ form.hidden_tag() }}
-		{{ form.username.label }} {{ form.username() }}
-		{{ form.choice.label }} {{ form.choice() }}
-		{{ form.email.label }} {{ form.email() }}
+		<p>{{ form.username.label }} {{ form.username() }}</p>
+		<p>{{ form.email.label }} {{ form.email() }}</p>
 		{{ form.submit() }}
 	</form> 
 

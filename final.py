@@ -11,6 +11,7 @@ from threading import Thread
 from werkzeug import secure_filename
 import requests
 import json
+import unittest
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -57,7 +58,6 @@ def send_email(to, subject, template, **kwargs):
 
 #Tweet_Mention = db.Table('Tweet_Mention', db.Column('tweet_id', db.Integer, db.ForeignKey('tweet.id')), db.Column('mention_id', db.Integer, db.ForeignKey('mention.id')))
 
-
 class User(db.Model): 
 	__tablename__ = "user"
 	id = db.Column(db.Integer, primary_key = True)
@@ -68,6 +68,7 @@ class Dogs(db.Model):
 	__tablename__ = "dogs"
 	id = db.Column(db.Integer, primary_key=True)
 	pic_id = db.Column(db.Integer)
+	breed = db.Column(db.String(64))
 
 class Breed(db.Model):
 	__tablename__ = "breed"
@@ -78,8 +79,7 @@ class Breed(db.Model):
 
 class ProfileForm(FlaskForm):
 	username = StringField("Enter your Dog-A-Day username (example 'iheartdogs33'):", validators = [Required()])
-	choice = RadioField('Are you looking for pictures of all dogs or a certain breed?', choices=[('All Dogs!','All Dogs!'), ('A Breed!', 'A Breed!')])
-	email = StringField("Enter the email address to which you would like your mention updates to be sent:", validators = [Required()])
+	email = StringField("Enter the email address to which you would like your dogs to be sent:", validators = [Required()])
 	submit = SubmitField('Sign me up!')
 
 
@@ -94,31 +94,33 @@ def get_or_create_user(db_session, username, email):
 		db_session.commit()
 		return user
 
-def get_or_create_dogs(db_session, picture_num):
+def get_or_create_dogs(db_session, picture_num, breed):
 	dogs = db.session.query(Tweet).filter_by(pic_id = picture_num).first()
 	if dogs:
 		return dogs
 	else:
-		dogs = Dogs(pic_id = picture_num)
+		dogs = Dogs(pic_id = picture_num, )
 		db.session.add(dogs)
 		db.session.commit()
 		return dogs
 
-def get_or_create_breed(db_session, choose_breed, picture_num):
-	breed = db.session.query(Breed).filter_by(choose_breed = dog_type).first()
-	if breed:
-		return breed
-	else:
-		breed = Breed(dog_type = choose_breed, pic_id = picture_num)
-		db_session.add(breed)
-		db_session.commit()
-		return breed
+#def get_or_create_breed(db_session, choose_breed, picture_num):
+#	breed = db.session.query(Breed).filter_by(choose_breed = dog_type).first()
+#	if breed:
+#		return breed
+#	else:
+#		breed = Breed(dog_type = choose_breed, pic_id = picture_num)
+#		db_session.add(breed)
+#		db_session.commit()
+#		return breed
 
 
 @app.route('/', methods = ['GET', 'POST'])
 def profile_form():
 	simpleForm = ProfileForm()
-	return render_template('profile-form.html', form=simpleForm)
+	return render_template('index.html', form=simpleForm)
+	#flash('All fields are required!')
+	#return render_template('profile-form.html', form=simpleForm)
 
 
 @app.route('/result/alldogs', methods = ['GET', 'POST'])
@@ -128,30 +130,26 @@ def index():
 	form = ProfileForm(request.form)
 	if request.method == "POST" and form.validate_on_submit():
 		username = form.username.data
-		choice = form.choice.data
 		email = form.email.data
 		result = request.args
-		#base_url = "https://dog.ceo/api/breeds/image/random"
-		base_url = "https://dog.ceo/dog-api/"
-		params = {}
-		params['message'] = result.get('message')
-		response = requests.get(base_url, params)
+		base_url = "https://dog.ceo/api/breeds"
+		#response = requests.get(base_url + "/image/random")
+		response = requests.get(base_url + '/list')
+#		print(response.text)
 		data = json.loads(response.text)
-		if choice == "All Dogs!":
-			return render_template('all_dogs.html', result = data["result"], username = username)
+#		for item in data:
+ #       		print(item)
+		return render_template('all_dogs.html', result = data["message"], username = username)
 		flash('All fields are required!')
 		#base_url = 'https://dog.ceo/dog-api/breeds-image-random.php'
-		#if choice == "A Breed!":
-		#	return render_template('breeds.html', results = data["results"], username = username, dog_type = dog_type)
+		
+		if db.session.query(User).filter_by(username = form.username.data).first():
+			flash("That user already has emails set up...")
+		get_or_create_dogs(db.session, form.pic_id.data, form.breeds.data)
+		if app.config['ADMIN']:
+			send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', dog = form.choice.data)
+		return redirect(url_for('see_my_dogs'))
 	
-		#if db.session.query(User).filter_by(username = form.username.data).first():
-		#	flash("That user already has emails set up...")
-		#get_or_create_dogs(db.session, form.pic_id.data)
-		#if app.config['ADMIN']:
-	#		send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', dog = form.choice.data)
-	#	return redirect(url_for('see_my_dogs'))
-	#return render_template('index.html', form=form,dogs=dogs)
-	#flash('All fields are required!')
 
 @app.route('/my_dogs')
 def see_my_dogs():
@@ -169,6 +167,15 @@ def page_not_found(e):
 @app.errorhandler(500)
 def server_error(e):
 	return render_template('500.htm'), 500
+
+
+class CodeTests(unittest.TestCase):
+	def test1(self):
+		self.assertEqual(type(my_dogs),type([]))
+
+	def test2(self):
+		self.assertEqual()
+
 
 if __name__ == '__main__':
     db.create_all()
