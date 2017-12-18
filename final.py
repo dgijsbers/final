@@ -62,7 +62,7 @@ def send_email(to, subject, template, **kwargs):
     thr.start()
     return thr
 
-user_collection = db.Table('user_collection',db.Column('user_id', db.Integer, db.ForeignKey('dogs.id')),db.Column('collection_id',db.Integer, db.ForeignKey('personalCollections.id')))
+user_collection = db.Table('user_collection',db.Column('users_id', db.Integer, db.ForeignKey('dogs.id')),db.Column('collection_id',db.Integer, db.ForeignKey('personalCollections.id')))
 #Tweet_Mention = db.Table('Tweet_Mention', db.Column('tweet_id', db.Integer, db.ForeignKey('tweet.id')), db.Column('mention_id', db.Integer, db.ForeignKey('mention.id')))
 
 class User(UserMixin, db.Model):
