@@ -7,7 +7,7 @@
 </div>
 
 
-<form method="POST">
+<form method="POST" action="http://localhost:5000/result/alldogs">
 	{{ form.hidden_tag() }}
 	{{ form.email.label }} {{ form.email() }}
 	{{ form.password.label }} {{ form.password() }}

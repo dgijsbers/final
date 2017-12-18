@@ -20,7 +20,7 @@ app = Flask(__name__)
 app.debug = True
 app.config['SECRET_KEY'] = 'hardtoguessstringfromsi364thisisnotsupersecure'
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL') or "postgresql://localhost/demgijsfinalproject"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL') or "postgresql://localhost/demgijsfinalapp"
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -236,9 +236,10 @@ def index():
 	#dogs = []
 	form = ProfileForm(request.form)
 	#if request.method == "POST" and form.validate_on_submit():
+		#return "OK"
 	username = form.username.data
 	email = form.email.data
-	#	password = form.password.data
+	#password = form.password.data
 	result = request.args
 	base_url = "https://dog.ceo/api/breeds"
 	response = requests.get(base_url + '/image/random')
@@ -247,11 +248,10 @@ def index():
 	send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', item = data['message'], username = username)
 		
 	return render_template('all_dogs.html', result = data["message"], username = username)
-	return redirect(url_for('see_my_dogs'))
-	#	return redirect(url_for(('index')))
-	flash('All fields are required!')
-		#base_url = 'https://dog.ceo/dog-api/breeds-image-random.php'
-#to, subject, template, **kwargs		
+#	return redirect(url_for('see_my_dogs'))
+	return redirect(url_for(('index')))
+	#fieldslash('All fields are required!')
+		
 
 #@app.route('/my_dogs')
 #@login_required
