@@ -96,7 +96,7 @@ class PersonalCollection(db.Model):
     __tablename__ = "personalCollections"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     dogs = db.relationship('Dogs',secondary=user_collection,backref=db.backref('personalCollections',lazy='dynamic'),lazy='dynamic')
 
 #class User(db.Model): 
