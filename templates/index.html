@@ -1,9 +1,3 @@
-{% if current_user.is_authenticated %}
-    <a href="{{ url_for('logout') }}">Sign Out {{current_user.username}}</a>
-{% else %}
-    <a href="{{ url_for('login') }}">Sign In</a>
-{% endif %}
-
 <html>
 	<head>
 		<title>Dog-A-Day</title>
@@ -14,13 +8,16 @@
 	<body>
 
 {% block content %}
-	<h1>Welcome to Dog-A-Day! Let's set up your profile.</h1>
+
+	<h1>Welcome to Dog-A-Day! Log in below.</h1>
 	<p><a href="{{ url_for('see_my_dogs') }}">See dogs sent.</a></p>
+	<p><a href="{{ url_for('register') }}">Register a new account.</a></p>
 	<form method="POST" action="http://localhost:5000/result/alldogs">
 		
 		{{ form.hidden_tag() }}
-		<p>{{ form.username.label }} {{ form.username() }}</p>
 		<p>{{ form.email.label }} {{ form.email() }}</p>
+		<p>{{ form.username.label }} {{ form.username() }}
+		<p>{{ form.password.label }} {{ form.password }}</p>
 		{{ form.submit() }}
 	</form> 
 

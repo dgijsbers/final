@@ -46,7 +46,7 @@ login_manager.login_view = 'login'
 login_manager.init_app(app) # set up login manager
 
 def make_shell_context():
-    return dict(app=app, db=db, User=User, Dogs=Dogs, Breed=Breed) 
+    return dict(app=app, db=db) 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 
@@ -69,18 +69,10 @@ user_collection = db.Table('user_collection',db.Column('user_id', db.Integer, db
 class User(UserMixin, db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    dod_username = db.Column(db.String(255), unique=True, index=True)
-    email_address = db.Column(db.String(64), unique=True, index=True)
+    username = db.Column(db.String(255), unique=True)#, index=True)
+    email = db.Column(db.String(64), unique=True)#, index=True)
     #collection = db.relationship('PersonalCollection', backref='User')
     password_hash = db.Column(db.String(128))
-
-class PersonalCollection(db.Model):
-    __tablename__ = "personalCollections"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255))
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    dogs = db.relationship('Dogs',secondary=user_collection,backref=db.backref('personalCollections',lazy='dynamic'),lazy='dynamic')
-
 
     @property
     def password(self):
@@ -100,6 +92,13 @@ class PersonalCollection(db.Model):
     @property
     def is_active(self):
         return True
+
+class PersonalCollection(db.Model):
+    __tablename__ = "personalCollections"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    dogs = db.relationship('Dogs',secondary=user_collection,backref=db.backref('personalCollections',lazy='dynamic'),lazy='dynamic')
 
 #class User(db.Model): 
 #	__tablename__ = "user"
@@ -132,26 +131,27 @@ class ProfileForm(FlaskForm):
 	submit = SubmitField('Sign me up!')
 
 	def validate_email(self,field):
-		if User.query.filter_by(email_address=field.data).first():
+		if User.query.filter_by(email=field.data).first():
 			raise ValidationError('That email is already registered for dog emails!')
 
 	def validate_username(self,field):
-		if User.query.filter_by(dod_username=field.data).first():
+		if User.query.filter_by(username=field.data).first():
 			raise ValidationError('Sorry - that username is already taken')
 
 class LoginForm(FlaskForm):
 	email = StringField('Email', validators=[Required(), Length(1,64), Email()])
+	username = StringField('Username', validators=[Required()])
 	password = PasswordField('Password', validators=[Required()])
 	remember_me = BooleanField('Keep me logged in')
 	submit = SubmitField('Log In')
 
 ##Put get_or_create functions here
 def get_or_create_users(db_session, username, email):
-	users = db.session.query(User).filter_by(dod_username = username).first()
+	users = db.session.query(User).filter_by(username = username).first()
 	if users:
 		return users
 	else:
-		users = User(dod_username = username, email_address = email)
+		users = User(username = username, email = email)
 		db_session.add(users)
 		db_session.commit()
 		return users
@@ -176,18 +176,28 @@ def get_or_create_dogs(db_session, picture_num, breed):
 #		db_session.commit()
 #		return breed
 
+@app.errorhandler(404)
+def page_not_found(e):
+	return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def server_error(e):
+	return render_template('500.htm'), 500
 
 # ROUTES FOR LOGGING IN/OUT
 @app.route('/login',methods=["GET","POST"])
 def login():
 	form = LoginForm()
+	#return "OK"
 	if form.validate_on_submit():
-		user = User.query.filter_by(email_address=form.email.data).first()
-		if user is not None and user.verify_password(form.password.data):
-			login_user(user, form.remember_me.data)
-			return redirect(request.args.get('next') or url_for('ProfileForm'))
-			flash('Invalid username or password.')
-			return render_template('login.html',form=form)
+		user = User.query.filter_by(email=form.email.data).first()
+		#return "OK"
+		#if user is not None and user.verify_password(form.password.data):
+			#login_user(user, form.remember_me.data)
+
+		return redirect(request.args.get('next') or url_for('profile_form'))
+			#flash('Invalid username or password.')
+		return render_template('all_dogs.html',form=form, username = username)
 
 @app.route('/logout')
 @login_required
@@ -200,12 +210,12 @@ def logout():
 def register():
 	form = ProfileForm()
 	if form.validate_on_submit():
-		user = User(email_address=form.email.data,dod_username=form.username.data,password_hash=form.password.data)
+		user = User(email=form.email.data,username=form.username.data,password_hash=form.password.data)
 		db.session.add(user)
 		db.session.commit()
 		flash("You've got a Dog-A-Day login account now!")
 		return redirect(url_for('login'))
-		return render_template('register.html',form=form)
+	return render_template('register.html',form=form)
 
 @app.route('/secret')
 @login_required
@@ -214,39 +224,33 @@ def secret():
 
 
 @app.route('/', methods = ['GET', 'POST'])
-#@login_required
 def profile_form():
-	simpleForm = ProfileForm()
+	simpleForm = LoginForm()
 	return render_template('index.html', form=simpleForm)
 	#flash('All fields are required!')
 	#return render_template('profile-form.html', form=simpleForm)
 
 
 @app.route('/result/alldogs', methods = ['GET', 'POST'])
-#@login_required
 def index():
 	#generate = Dogs.query.all()
 	#dogs = []
 	form = ProfileForm(request.form)
-	if request.method == "POST" and form.validate_on_submit():
-		username = form.username.data
-		email = form.email.data
-		result = request.args
-		base_url = "https://dog.ceo/api/breeds"
-		#response = requests.get(base_url + "/image/random")
-		response = requests.get(base_url + '/image/random')
-#		print(response.text)
-		data = json.loads(response.text)
-#		item = []
-#		if 'message' not in item:
-#			item.append(['message'][1])
-
-		send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', item = data['message'], username = username)
+	#if request.method == "POST" and form.validate_on_submit():
+	username = form.username.data
+	email = form.email.data
+	#	password = form.password.data
+	result = request.args
+	base_url = "https://dog.ceo/api/breeds"
+	response = requests.get(base_url + '/image/random')
+	print(response.text)
+	data = json.loads(response.text)
+	send_email(form.email.data, 'New Dog Pic', 'mail/new_dog', item = data['message'], username = username)
 		
-		return render_template('all_dogs.html', result = data["message"], username = username)
-		return redirect(url_for('see_my_dogs'))
+	return render_template('all_dogs.html', result = data["message"], username = username)
+	return redirect(url_for('see_my_dogs'))
 	#	return redirect(url_for(('index')))
-		flash('All fields are required!')
+	flash('All fields are required!')
 		#base_url = 'https://dog.ceo/dog-api/breeds-image-random.php'
 #to, subject, template, **kwargs		
 
@@ -257,16 +261,8 @@ def see_my_dogs():
 	dogs = Dogs.query.all()
 	for d in dogs:
 		user = Dogs.query.filter_by(my_dogs = my_dogs).first()
-		my_dogs.append(d.my_dogs, userdod_username)
-	return render_template('my_dogs.html', my_dogs = my_dogs)
-
-@app.errorhandler(404)
-def page_not_found(e):
-	return render_template('404.html'), 404
-
-@app.errorhandler(500)
-def server_error(e):
-	return render_template('500.htm'), 500
+		my_dogs.append(d.my_dogs, user.username)
+		return render_template('my_dogs.html', my_dogs = my_dogs)
 
 
 class CodeTests(unittest.TestCase):
