@@ -11,7 +11,6 @@ from threading import Thread
 from werkzeug import secure_filename
 import requests
 import json
-import unittest
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_required, logout_user, login_user, UserMixin, current_user
 
@@ -21,7 +20,7 @@ app = Flask(__name__)
 app.debug = True
 app.config['SECRET_KEY'] = 'hardtoguessstringfromsi364thisisnotsupersecure'
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://localhost/demgijsfinalproject"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL') or "postgresql://localhost/demgijsfinalproject"
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -33,7 +32,7 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_SUBJECT_PREFIX'] = '[A Dog-a-Day App]'
 app.config['MAIL_SENDER'] = 'Admin demgijs364@gmail.com'
 app.config['ADMIN'] = os.environ.get('ADMIN') or 'demgijsi364@gmail.com'
-
+app.config['HEROKU_ON'] = os.environ.get('HEROKU')
 manager = Manager(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
